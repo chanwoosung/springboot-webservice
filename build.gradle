@@ -1,37 +1,51 @@
 buildscript {
 	ext {
-		springBootVersion = '1.5.9.RELEASE'
+		springBootVersion = '2.0.4.RELEASE'
 	}
 	repositories {
 		mavenCentral()
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-		classpath "io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE"
+		//추가된 것
+		classpath("io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE")
 	}
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 
-group = 'com.jojoldu'
-version = '0.0.1'
+
 sourceCompatibility = 1.8
 
 repositories {
 	mavenCentral()
+
 }
 
-//Spring Boot Overriding
+//LocalDate/LocalDateTime과 Database 간 문제 해결하기 위해
+//SpringDataJpa가 사용하는 Hibernate의 버전만 5.2.11로 변경해서 사용하겠다는 의존성 변경 코드
 ext['hibernate.version'] = '5.2.11.Final'
 
 dependencies {
+	testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.2'
 	compile('org.springframework.boot:spring-boot-starter-actuator')
 	compile('org.springframework.boot:spring-boot-starter-data-jpa')
 	compile('org.springframework.boot:spring-boot-starter-web')
-	compile 'pl.allegro.tech.boot:handlebars-spring-boot-starter:0.2.15'
+	compile('org.springframework.boot:spring-boot-devtools')
+	//handlebars 의존성 추가
+	//compile 'pl.allegro.tech.boot:handlebars-spring-boot-starter:0.3.0'
+	//Mustache 의존성 추가 (핸들바 대신)
+	compile('org.springframework.boot:spring-boot-starter-mustache')
+	// PostgreSQL
+	//compile 'postgresql:postgresql:42.2.2'
 	runtime('com.h2database:h2')
-	compileOnly('org.projectlombok:lombok')
+	runtime('org.postgresql:postgresql')
+	compileOnly('org.projectlombok:lombok:1.18.2')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
+
+
+
 }
