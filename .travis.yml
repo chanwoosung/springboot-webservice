@@ -1,0 +1,29 @@
+language: java
+jdk:
+  - openjdk8
+
+branches:
+  only:
+    - master
+
+
+script: "./gradlew clean build"
+  - chmod +x ./gradlew build connectedCheck
+
+# CI 실행 완료시 메일로 알람
+notifications:
+  email:
+    recipients:
+      - gansing32@gmail.com
+deploy:
+  - provider: s3
+    access_key_id: AKIAQT7PQRC5ULKH7NU4 # Travis repo settings에 설정된 값
+    secret_access_key: mdl6u0zBDvOGVLAhrL+XpqLgNrkuPOf2pUVerrXb # Travis repo settings에 설정된 값
+    bucket: springboot-test-aws-deploy # 6-3-3에서 생성한 S3 버킷
+    region: ap-northeast-2
+    skip_cleanup: true
+    acl: public_read
+    wait-until-deployed: true
+    on:
+      repo: https://github.com/chanwoosung/testTraviscode2.git #Github 주소
+      branch: master
