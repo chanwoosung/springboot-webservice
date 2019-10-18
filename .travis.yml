@@ -1,29 +1,55 @@
 language: java
+sudo : required
+before_script:
+  - chmod +x gradlew
 jdk:
   - openjdk8
 
 branches:
   only:
     - master
+install: gradle wrapper --gradle-version 5.6
+# Travis CI 서버의 Cache 활성화
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+    - '$HOME/.gradle'
 
-
+# clean 후 Build (Build시 자동으로 test 수행)
 script: "./gradlew clean build"
-  - chmod +x ./gradlew build connectedCheck
+before_deploy:
+    - rm -rf springboot-webservice.zip
+    - zip -r springboot-webservice *
+    - mkdir -p deploy
+    - mv springboot-webservice.zip deploy/springboot-webservice.zip
 
-# CI 실행 완료시 메일로 알람
+
+deploy:
+  - provider: s3
+    access_key_id: $AWS_ACCESS_KEY # Travis repo settings에 설정된 값
+    secret_access_key: $AWS_SECRET_KEY # Travis repo settings에 설정된 값
+    bucket: springboot-test-aws-deploy # 6-3-3에서 생성한 S3 버킷
+    region: ap-northeast-2
+    skip_cleanup: true
+    local_dir: deploy
+    wait-until-deployed: true
+    on:
+      repo: chanwoosung/testtra #Github 주소
+      branch: master
+  - provider: codedeploy
+    access_key_id: $AWS_ACCESS_KEY # Travis repo settings에 설정된 값
+    secret_access_key: $AWS_SECRET_KEY # Travis repo settings에 설정된 값
+    bucket: springboot-test-aws-deploy # S3 버킷
+    key: springboot-webservice.zip # S3 버킷에 저장된 springboot-webservice.zip 파일을 EC2로 배포
+    bundle_type: zip
+    application: AWSDeploy # 웹 콘솔에서 등록한 CodeDeploy 어플리케이션
+    deployment_group: AWSDeploy # 웹 콘솔에서 등록한 CodeDeploy 배포 그룹
+    region: ap-northeast-2
+    wait_until_deployed: true
+    on:
+      repo: chanwoosung/testtra
+      branch: master
 notifications:
   email:
     recipients:
       - gansing32@gmail.com
-deploy:
-  - provider: s3
-    access_key_id: AKIAQT7PQRC5ULKH7NU4 # Travis repo settings에 설정된 값
-    secret_access_key: mdl6u0zBDvOGVLAhrL+XpqLgNrkuPOf2pUVerrXb # Travis repo settings에 설정된 값
-    bucket: springboot-test-aws-deploy # 6-3-3에서 생성한 S3 버킷
-    region: ap-northeast-2
-    skip_cleanup: true
-    acl: public_read
-    wait-until-deployed: true
-    on:
-      repo: https://github.com/chanwoosung/testTraviscode2.git #Github 주소
-      branch: master
